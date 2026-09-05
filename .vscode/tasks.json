@@ -2,44 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build: Full",
+            "label": "Build",
             "type": "shell",
             "command": "uv",
             "args": [
                 "run",
                 "python",
-                "tools/build.py",
-                "--type",
-                "full"
-            ],
-            "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "Build: Lite",
-            "type": "shell",
-            "command": "uv",
-            "args": [
-                "run",
-                "python",
-                "tools/build.py",
-                "--type",
-                "lite"
-            ],
-            "group": "build",
-            "problemMatcher": []
-        },
-        {
-            "label": "Build: All (Full & Lite)",
-            "dependsOn": [
-                "Build: Full",
-                "Build: Lite"
+                "tools/build.py"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "dependsOrder": "sequence"
+            "problemMatcher": []
         }
     ]
 }

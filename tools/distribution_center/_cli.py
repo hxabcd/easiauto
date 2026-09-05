@@ -91,22 +91,12 @@ def cmd_release(args: argparse.Namespace) -> None:
     # 可选：先构建再发版
     if args.build_first:
         print("🔨 开始构建...")
-        build_types = []
-        if args.build_full:
-            build_types.append("full")
-        if args.build_lite:
-            build_types.append("lite")
-        if not build_types:
-            build_types = ["full", "lite"]  # 默认两种都构建
-
-        for b_type in build_types:
-            print(f"\n🚀 构建 {b_type.upper()} 版本...")
-            cmd = ["uv", "run", "python", "tools/build.py", "--type", b_type]
-            result = subprocess.run(cmd, cwd=Path(__file__).parent.parent.parent, check=False)
-            if result.returncode != 0:
-                print(f"❌ {b_type.upper()} 构建失败 (exit code {result.returncode})")
-                sys.exit(1)
-            print(f"✅ {b_type.upper()} 构建完成")
+        cmd = ["uv", "run", "python", "tools/build.py"]
+        result = subprocess.run(cmd, cwd=Path(__file__).parent.parent.parent, check=False)
+        if result.returncode != 0:
+            print(f"❌ 构建失败 (exit code {result.returncode})")
+            sys.exit(1)
+        print("✅ 构建完成")
         print()
 
     is_dev = _resolve_is_dev(version) if args.is_dev == "auto" else (args.is_dev == "yes")
@@ -265,8 +255,6 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--draft", action="store_true", help="创建为草稿 Release（不公开发布）")
     p.add_argument("--token", default="", help="GitHub Personal Access Token")
     p.add_argument("--build-first", action="store_true", help="先执行构建再发版")
-    p.add_argument("--build-full", action="store_true", help="配合 --build-first，构建 Full 版本")
-    p.add_argument("--build-lite", action="store_true", help="配合 --build-first，构建 Lite 版本")
     p.set_defaults(func=cmd_release)
 
     # ── pull ──

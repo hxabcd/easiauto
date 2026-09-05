@@ -31,13 +31,13 @@ def _detect_version() -> str:
 
 def collect_release_assets(dist_dir: Path, version: str) -> list[Path]:
     """在 *dist_dir* 中查找匹配 *version* 的 zip 构建产物。"""
-    pattern = re.compile(rf"^EasiAuto_v{re.escape(version)}(?:_lite)?\.zip$", re.IGNORECASE)
+    pattern = re.compile(rf"^EasiAuto_v{re.escape(version)}\.zip$", re.IGNORECASE)
     files = [path for path in dist_dir.iterdir() if path.is_file() and pattern.match(path.name)]
     files.sort(key=lambda path: path.name)
     if not files:
         raise ValueError(
             f"在目录 {dist_dir} 中未找到版本 {version} 的构建产物，"
-            f"命名应为 EasiAuto_v{version}.zip 或 EasiAuto_v{version}_lite.zip"
+            f"命名应为 EasiAuto_v{version}.zip"
         )
     return files
 
@@ -161,10 +161,10 @@ def update_manifest(
 
     downloads = []
     for file_path in collect_release_assets(dist_dir, version):
-        channel = "lite" if "_lite" in file_path.stem.lower() else "default"
         downloads.append(
             {
-                "channel": channel,
+                # 保留 default 分支兼容旧版客户端的 channel 过滤
+                "channel": "default",
                 "url": f"https://github.com/{OWNER_REPO}/releases/download/v{version}/{file_path.name}",
                 "sha256": get_sha256(file_path),
             }

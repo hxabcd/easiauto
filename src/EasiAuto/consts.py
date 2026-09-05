@@ -1,6 +1,5 @@
 import sys
 from contextlib import suppress
-from importlib.util import find_spec
 from pathlib import Path
 
 # 基本
@@ -26,12 +25,6 @@ VENDOR_PATH = EA_BASEDIR / "vendors"
 
 if str(VENDOR_PATH) not in sys.path:
     sys.path.insert(0, str(VENDOR_PATH))
-
-# 环境判断
-try:
-    IS_FULL = bool(find_spec("cv2"))
-except (ModuleNotFoundError, ValueError):
-    IS_FULL = False
 
 
 # 数据目录迁移

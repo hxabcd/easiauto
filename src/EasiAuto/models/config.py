@@ -24,7 +24,7 @@ from pydantic.fields import FieldInfo
 from PySide6.QtGui import QColor
 
 from EasiAuto import __version__
-from EasiAuto.consts import CONFIG_PATH, IS_FULL
+from EasiAuto.consts import CONFIG_PATH
 from EasiAuto.core.utils import desensitize_account
 
 
@@ -55,7 +55,7 @@ class LogLevelEnum(InformativeEnum):
 # fmt: off
 class LoginMethod(InformativeEnum):
     FIXED = (0, "固定位置", "大部分情况下开箱即用，仅在特殊情况需手动设置坐标", {"tags": ["较快", "较稳定", "默认"]})
-    CV = (1, "图像识别", "仅支持常规分辨率与缩放，使用 OpenCV 可一定程度提高识别率", {"tags": ["较慢", "不稳定"]})
+    CV = (1, "图像识别", "仅支持常规分辨率与缩放，基于精确像素匹配", {"tags": ["较慢", "不稳定"]})
     UIA = (2, "自动定位", "基于 UI Automation 直接获取页面元素，在部分机器上可能极慢", {"tags": ["较慢", "最稳定"]})
     TOKEN = (3, "令牌投递", "通过希沃接口获取登录令牌并投递至希沃白板，免密极速登录", {"tags": ["最快", "较稳定", "需要修补"]})
 # fmt: on
@@ -76,11 +76,6 @@ class UpdateMode(InformativeEnum):
 class UpdateChannel(InformativeEnum):
     RELEASE = ("release", "稳定通道")
     DEV = ("dev", "测试通道")
-
-
-class PackageChannel(InformativeEnum):
-    DEFAULT = ("default", "完整版")
-    LITE = ("lite", "精简版")
 
 
 class DownloadSource(InformativeEnum):
@@ -609,12 +604,6 @@ class UpdateConfig(ConfigModel):
         default=UpdateChannel.RELEASE,
         title="更新通道",
         description="设置应用的更新目标版本（测试通道可能含有不稳定的功能，谨慎使用）",
-        json_schema_extra={"icon": "Tag"},
-    )
-    TargetPackageChannel: PackageChannel = Field(
-        default=PackageChannel.DEFAULT if IS_FULL else PackageChannel.LITE,
-        title="更新包分支",
-        description="设置应用的更新包分支",
         json_schema_extra={"icon": "Tag"},
     )
     TargetDownloadSource: DownloadSource = Field(

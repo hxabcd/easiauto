@@ -24,9 +24,8 @@ from qfluentwidgets import (
 )
 
 from EasiAuto import __version__
-from EasiAuto.consts import IS_FULL
 from EasiAuto.core.utils import get_resource, get_third_party_libs
-from EasiAuto.view.components.tag import PrimaryTagLabel, TagLabel
+from EasiAuto.view.components.tag import PrimaryTagLabel
 from EasiAuto.view.tokens import MAX_CONTENT_WIDTH, TEXT_SECONDARY_DARK, TEXT_SECONDARY_LIGHT
 
 _GITHUB_URL = "https://github.com/hxabcd/EasiAuto"
@@ -145,12 +144,9 @@ class AboutPage(QWidget):
         title_label = TitleLabel("EasiAuto")
         version_label = PrimaryTagLabel(f"v{__version__}")
         version_label.setBold(True)
-        channel_label = TagLabel("完整版" if IS_FULL else "精简版")
         title_layout.addWidget(title_label)
         title_layout.addSpacing(6)
         title_layout.addWidget(version_label, alignment=Qt.AlignmentFlag.AlignVCenter)
-        title_layout.addSpacing(4)
-        title_layout.addWidget(channel_label, alignment=Qt.AlignmentFlag.AlignVCenter)
         title_layout.addStretch(1)
 
         banner_layout.addLayout(title_layout)

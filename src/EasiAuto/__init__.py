@@ -3,7 +3,7 @@
 __version__ = "1.2.2b6"
 __author__ = "hxabcd"
 
-from .consts import IS_DEV, IS_FULL
+from .consts import IS_DEV
 
 if IS_DEV:
     from loguru import logger
@@ -14,7 +14,7 @@ if IS_DEV:
  |  _| / _` / __| | / _ \| | | | __/ _ \ 
  | |__| (_| \__ \ |/ ___ \ |_| | || (_) |
  |_____\__,_|___/_/_/   \_\__,_|\__\___/ 
-EasiAuto v{__version__} ({"FULL" if IS_FULL else "LITE"})
+EasiAuto v{__version__}
 You are running in development environment.
 Author: {__author__}
 GitHub Repo: https://github.com/hxabcd/EasiAuto""")

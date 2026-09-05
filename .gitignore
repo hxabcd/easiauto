@@ -16,7 +16,6 @@ wheels/
 
 # Development environments
 .env
-opencv_minimal_build
 TODO
 .ruff_cache
 .idea/

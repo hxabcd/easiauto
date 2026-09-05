@@ -2,7 +2,6 @@ import time
 
 from loguru import logger
 
-from EasiAuto.consts import IS_FULL
 from EasiAuto.core.utils import Point, get_resource, get_scale
 from EasiAuto.models.config import config
 
@@ -27,10 +26,7 @@ class CVAutomator(PyAutoGuiBaseAutomator):
         img = get_resource(f"EasiNoteUI/{img_name}{self.path_suffix}.{ext_name}")
 
         try:
-            if IS_FULL:
-                control = pyautogui.locateCenterOnScreen(img, confidence=0.8)
-            else:
-                control = pyautogui.locateCenterOnScreen(img)
+            control = pyautogui.locateCenterOnScreen(img)
             assert control is not None
         except (pyautogui.ImageNotFoundException, AssertionError) as e:
             raise LoginError(f"未识别到控件: {img_name}") from e

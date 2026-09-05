@@ -1,9 +1,7 @@
-import argparse
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Literal
 
 from packaging.version import Version
 
@@ -19,9 +17,9 @@ ICON = RESOURCES / "icons" / "EasiAuto.ico"
 VERSION = Version(__version__)
 
 
-def run_pyinstaller(build_type: Literal["full", "lite"]):
-    """执行 PyInstaller 打包"""
-    target_dir = OUTPUT_DIR / build_type
+def run_pyinstaller():
+    """执行 PyInstaller 打包（单一完整版本）"""
+    target_dir = OUTPUT_DIR
 
     # PyInstaller 命令
     cmd = [
@@ -40,8 +38,8 @@ def run_pyinstaller(build_type: Literal["full", "lite"]):
         "--exclude-module=PySide6.QtOpenGLWidgets",
         # ------ 输出 ------
         f"--distpath={target_dir}",
-        f"--workpath={OUTPUT_DIR / 'work' / build_type}",
-        f"--specpath={OUTPUT_DIR / 'spec' / build_type}",
+        f"--workpath={OUTPUT_DIR / 'work'}",
+        f"--specpath={OUTPUT_DIR / 'spec'}",
         # ------ Windows 配置 ------
         "--windowed",
         f"--icon={ICON}",
@@ -49,17 +47,12 @@ def run_pyinstaller(build_type: Literal["full", "lite"]):
         MAIN,
     ]
 
-    if build_type == "lite":
-        print("Building LITE version...")
-        cmd.insert(-1, "--exclude-module=numpy")
-    else:
-        print("Building FULL version...")
-
+    print("Building EasiAuto...")
     print(f"Executing command: {' '.join(cmd)}")
 
     try:
         subprocess.run(cmd, check=True)
-        print(f"{build_type.upper()} build succeeded! Output path: {target_dir}")
+        print(f"Build succeeded! Output path: {target_dir}")
     except subprocess.CalledProcessError as e:
         print(f"Build failed: {e}")
         sys.exit(1)
@@ -104,12 +97,6 @@ def run_pyinstaller(build_type: Literal["full", "lite"]):
             shutil.rmtree(dest_vendors)
         print(f"Copying vendors to {dest_vendors}...")
         shutil.copytree(vendors_dir, dest_vendors)
-        # LITE 无 numpy，cv2.pyd 无法运行，不携带
-        if build_type == "lite":
-            lite_cv2 = dest_vendors / "cv2.pyd"
-            if lite_cv2.exists():
-                print(f"Removing cv2.pyd from LITE: {lite_cv2}")
-                lite_cv2.unlink()
 
     # 删除冗余/不需要的 DLL
     redundant_patterns = [
@@ -126,10 +113,7 @@ def run_pyinstaller(build_type: Literal["full", "lite"]):
             item.unlink()
 
     # 压缩打包结果
-    names = [APP_NAME, f"v{VERSION}"]
-    if build_type == "lite":
-        names.append("lite")
-    name = "_".join(names)
+    name = "_".join([APP_NAME, f"v{VERSION}"])
 
     zip_path = OUTPUT_DIR / name
     print(f"Creating archive: {zip_path}.zip ...")
@@ -139,8 +123,4 @@ def run_pyinstaller(build_type: Literal["full", "lite"]):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="EasiAuto build workflow")
-    parser.add_argument("--type", choices=["full", "lite"], default="full")
-    args = parser.parse_args()
-
-    run_pyinstaller(args.type)
+    run_pyinstaller()

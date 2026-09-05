@@ -5,9 +5,8 @@ import time
 from windows11toast import toast
 
 from PySide6.QtCore import QThread, Signal
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 from qfluentwidgets import (
-    CheckBox,
     FluentIcon,
     InfoBar,
     PrimaryPushButton,
@@ -21,44 +20,39 @@ class BuildThread(QThread):
     log_signal = Signal(str)
     finished_signal = Signal(bool, float)
 
-    def __init__(self, build_types: list[str]):
-        super().__init__()
-        self.build_types = build_types
-
     def run(self):
         start_time = time.time()
-        for b_type in self.build_types:
-            self.log_signal.emit(f"\n🚀 Starting {b_type.upper()} build...\n")
-            cmd = ["uv", "run", "python", "tools/build.py", "--type", b_type]
+        self.log_signal.emit("\n🚀 Starting build...\n")
+        cmd = ["uv", "run", "python", "tools/build.py"]
 
-            try:
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    encoding="utf-8",
-                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-                )
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+            )
 
-                while True:
-                    line = process.stdout.readline()
-                    if not line and process.poll() is not None:
-                        break
-                    if line:
-                        self.log_signal.emit(line.rstrip())
+            while True:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                if line:
+                    self.log_signal.emit(line.rstrip())
 
-                if process.returncode != 0:
-                    self.log_signal.emit(f"❌ {b_type.upper()} build failed with code {process.returncode}")
-                    self.finished_signal.emit(False, 0.0)
-                    return
-
-                self.log_signal.emit(f"✅ {b_type.upper()} build completed successfully.")
-
-            except Exception as e:
-                self.log_signal.emit(f"❌ Error executing build: {str(e)}")
+            if process.returncode != 0:
+                self.log_signal.emit(f"❌ Build failed with code {process.returncode}")
                 self.finished_signal.emit(False, 0.0)
                 return
+
+            self.log_signal.emit("✅ Build completed successfully.")
+
+        except Exception as e:
+            self.log_signal.emit(f"❌ Error executing build: {str(e)}")
+            self.finished_signal.emit(False, 0.0)
+            return
 
         end_time = time.time()
         self.finished_signal.emit(True, end_time - start_time)
@@ -79,18 +73,6 @@ class BuildWidget(QWidget):
 
         root.addWidget(SubtitleLabel("构建", self))
 
-        # Build type selection
-        type_row = QHBoxLayout()
-        type_row.addWidget(StrongBodyLabel("构建类型:", self))
-        self.full_check = CheckBox("Full", self)
-        self.full_check.setChecked(True)
-        self.lite_check = CheckBox("Lite", self)
-        self.lite_check.setChecked(True)
-        type_row.addWidget(self.full_check)
-        type_row.addWidget(self.lite_check)
-        type_row.addStretch(1)
-        root.addLayout(type_row)
-
         # Build button
         self.build_btn = PrimaryPushButton("开始构建", self)
         self.build_btn.setIcon(FluentIcon.PLAY)
@@ -108,19 +90,10 @@ class BuildWidget(QWidget):
 
     def start_build(self, on_success=None):
         self.pending_callback = on_success
-        types = []
-        if self.full_check.isChecked():
-            types.append("full")
-        if self.lite_check.isChecked():
-            types.append("lite")
-        if not types:
-            InfoBar.warning("提示", "请至少选择一种构建类型", parent=self)
-            return
-
         self.build_btn.setEnabled(False)
         self.log_view.clear()
 
-        self.build_thread = BuildThread(types)
+        self.build_thread = BuildThread()
         self.build_thread.log_signal.connect(self._append_log)
         self.build_thread.finished_signal.connect(self._on_build_finished)
         self.build_thread.start()
@@ -163,8 +136,7 @@ class BuildManager:
 
     def start_build(self, on_success=None):
         self.pending_callback = on_success
-        types = ["full", "lite"]
-        self.build_thread = BuildThread(types)
+        self.build_thread = BuildThread()
         self.build_thread.finished_signal.connect(self._on_finished)
         self.build_thread.start()
 

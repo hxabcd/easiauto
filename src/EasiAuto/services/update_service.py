@@ -22,7 +22,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Slot
 
 from EasiAuto import __version__
 from EasiAuto.consts import CACHE_DIR, EA_BASEDIR, EA_EXECUTABLE, IS_DEV
-from EasiAuto.models.config import DownloadSource, PackageChannel, UpdateChannel, config
+from EasiAuto.models.config import DownloadSource, UpdateChannel, config
 
 HEADERS = {"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"}
 
@@ -47,7 +47,6 @@ DOWNLOAD_SOURCES: dict[DownloadSource, str] = {
 
 @dataclass(frozen=True)
 class DownloadItem:
-    channel: str
     url: str
     sha256: str | None
 
@@ -596,10 +595,9 @@ class UpdateService(QObject):
         raw_list = version_info.get("downloads", [])
         result = []
         for item in raw_list:
-            if isinstance(item, dict) and item.get("channel") and item.get("url"):
+            if isinstance(item, dict) and item.get("url"):
                 result.append(
                     DownloadItem(
-                        channel=item["channel"],
                         url=item["url"],
                         sha256=item.get("sha256"),
                     )
@@ -607,19 +605,11 @@ class UpdateService(QObject):
         return result
 
     def _select_downloads(self, all_downloads: list[DownloadItem]) -> tuple[DownloadItem, ...]:
-        # 筛选符合当前 package_channel 的下载项
-        downloads = tuple(d for d in all_downloads if d.channel == config.Update.TargetPackageChannel.value)
-
-        # 仅在当前包通道不是 default 时，才回退到 default
-        if not downloads and config.Update.TargetPackageChannel != PackageChannel.DEFAULT:
-            logger.warning(f"未找到 {config.Update.TargetPackageChannel.value} 分支的下载项, 回退至 default 分支")
-            downloads = tuple(d for d in all_downloads if d.channel == PackageChannel.DEFAULT.value)
-
-        if not downloads:
+        if not all_downloads:
             logger.warning("获取到的下载项为空")
             return ()
 
-        return downloads
+        return tuple(all_downloads)
 
     def _check_sha256(self, path: Path, expected_sha256: str) -> bool:
         expected = expected_sha256.lower().strip()
