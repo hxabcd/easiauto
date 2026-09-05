@@ -478,8 +478,7 @@ class UpdatePage(QWidget):
         text_layout.addWidget(self.detail)
         text_layout.addWidget(self.indeterminate_progress_bar)
         text_layout.addWidget(self.progress_bar)
-        status_layout.addLayout(text_layout)
-        status_layout.addStretch(1)
+        status_layout.addLayout(text_layout, 1)
         status_layout.addWidget(self.action_button, alignment=Qt.AlignmentFlag.AlignRight)
 
         self.content_widget = UpdateContentView()
