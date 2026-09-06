@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 from typing import cast
 
-import pywintypes
 import win32api
 import win32con
 import win32event
@@ -341,7 +340,7 @@ class ClassIslandManager:
             if h:
                 win32api.CloseHandle(h)
                 return True
-        except pywintypes.error:
+        except Exception:
             pass
         return False
 

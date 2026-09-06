@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from typing import cast
 
-import pywintypes
 from loguru import logger
 
 from PySide6.QtCore import QEasingCurve, Qt
@@ -55,7 +54,7 @@ def patch_frameless_window_uaci() -> None:
     def nativeEvent(self, event_type, message):  # type: ignore[no-untyped-def]
         try:
             return original_native_event(self, event_type, message)
-        except pywintypes.error as e:
+        except Exception as e:
             # 仅吞 GetCursorPos 的拒绝访问（UIPI），其余重新抛出
             if getattr(e, "winerror", None) == 5 and getattr(e, "funcname", "") == "GetCursorPos":
                 logger.debug(f"GetCursorPos 被 UIPI 拒绝，已降级处理: {e}")
