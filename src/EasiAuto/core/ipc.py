@@ -9,6 +9,7 @@ import json
 from collections.abc import Callable, Sequence
 
 from loguru import logger
+from shiboken6 import isValid
 
 from PySide6.QtCore import QObject
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
@@ -67,6 +68,10 @@ class ArgvIpcServer(QObject):
             socket.disconnected.connect(lambda s=socket: self._on_socket_disconnected(s))
 
     def _on_socket_ready_read(self, socket: QLocalSocket) -> None:
+        # NOTE: 使用 lambda 捕获后 socket 可能已被 deleteLater（disconnected 触发顺序不定），
+        # 此时直接访问 C++ 对象会抛出 RuntimeError
+        if not isValid(socket):
+            return
         try:
             raw = bytes(socket.readAll())
             if not raw:
@@ -81,9 +86,11 @@ class ArgvIpcServer(QObject):
         except Exception as e:
             logger.error(f"处理 IPC 消息失败: {e}")
         finally:
-            socket.disconnectFromServer()
+            if isValid(socket):
+                socket.disconnectFromServer()
 
     def _on_socket_disconnected(self, socket: QLocalSocket) -> None:
         if socket in self._sockets:
             self._sockets.remove(socket)
-        socket.deleteLater()
+        if isValid(socket):
+            socket.deleteLater()
